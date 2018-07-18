@@ -1,0 +1,53 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+require(data.table)
+require(ggplot2)
+```
+
+Run the actual fitting process, and plot the results.
+
+```{r}
+
+
+# Create angle sequence in Radians, with their respspective energy values.
+dat <- data.table(angle=(seq(from=0,to=360, by = 30)/180)*pi, 
+                  energy=c(0,-4.37,-7.06,-3.69,.00,-4.32,-7.01,-3.74,-0.01,-4.44,-7.01,-3.69,0))
+
+dat
+
+# Run the fit with an initial guess for the parameter values.
+modelFit <- nls(energy ~ k*(1 + cos(angle*n+d)),data=dat, start=list(k=-3.5, n=3, d=pi))
+
+# Show the summary of the fitting procedure.
+summary(modelFit)
+
+# Set the values of the function parameters from the fit output.
+kArg <- coef(modelFit)[[1]]
+nArg <- coef(modelFit)[[2]]
+dArg <- coef(modelFit)[[3]]
+
+p1 <- ggplot(dat, aes(x=angle , y=energy)) + # Initialize the plot with "default" x and y values.
+    geom_point(color = "red") + # Add a layer for points, using the default x and y values.
+    stat_function(fun = function(x) kArg*(1+ cos(x*nArg - dArg)), color="blue" ) + # Add a layer with the trace of an arbitrary function.
+    theme_linedraw() + # Change the "theme" to something simple (there are a few to choose from). 
+    labs(x="Angle (rads)", y="Energy (kj/mol)") # Set the axis labels.
+
+# Save the plot to a file.
+#ggsave(plot = p1,filename = "fit.pdf", device = "pdf",width = 7, height = 3.5 )
+# Display the plot below.
+p1
+
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
